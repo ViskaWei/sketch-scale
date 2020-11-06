@@ -1,2 +1,3 @@
-# IEEE BigData 2020 Sketch and Scale: Geo-distributed tSNE and UMAP
+# Sketch and Scale: Geo-distributed tSNE and UMAP
+# IEEE BigD2020
 Viska Wei, Nikita Ivkin, Vladimir Braverman, and Alexander Szalay
