@@ -17,7 +17,7 @@ bin-release/
 # should NOT be excluded as they contain compiler settings and other important
 # information for Eclipse / Flash Builder.
 
-/.ipynb_checkpoints
+.ipynb_checkpoints
 /.vscode
 /data
 /old
