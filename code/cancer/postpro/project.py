@@ -19,30 +19,30 @@ model_dict={}
 #     print(ftr_pd.keys())
 #     return ftr_pd
 
-def get_umap_pd(ftr_pd, ftr):
-    try: df_umap=ftr_pd[ftr]
-    except: df_umap=ftr_pd[list(map(str,ftr))]
+def get_umap_pd(dfHH, ftr):
+    try: df_umap=dfHH[ftr]
+    except: df_umap=dfHH[list(map(str,ftr))]
     umapT = umap.UMAP(n_components=2,min_dist=0.0,n_neighbors=50, random_state=1178)
     umap_result = umapT.fit_transform(df_umap.values)
-    ftr_pd['u1'] = umap_result[:,0]
-    ftr_pd['u2'] = umap_result[:,1]
+    dfHH['u1'] = umap_result[:,0]
+    dfHH['u2'] = umap_result[:,1]
     return umapT
 
-def get_mapping_pd(HH_pdc,umapT,ftr_len):
+def get_mapping_pd(dfHH,umapT,ftr_len):
     # lb,ub=int(HH_pd['freq'][0]*lbr),int(HH_pd['freq'][0])
     # HH_pdc=HH_pd[HH_pd['freq']>lb]
     # print(f'lpdc: {len(HH_pdc)} lpd: {len(HH_pd)} ub:{ub} lb:{lb} HHratio:{lbr}')
-    u_da=umapT.transform(HH_pdc[list(range(ftr_len))])   
-    HH_pdc['u1']=u_da[:,0]
-    HH_pdc['u2']=u_da[:,1]
+    u_da=umapT.transform(dfHH[list(range(ftr_len))])   
+    dfHH['u1']=u_da[:,0]
+    dfHH['u2']=u_da[:,1]
     # sns.scatterplot('u1','u2',data=HH_pdc,alpha=0.7,s=10, color='k', marker="+")
-    return HH_pdc
+    return dfHH
 
-def get_kmean_lbl(exact_pdh, N_cluster, u1 = 'u1', u2 = 'u2'):
-    umap_result = exact_pdh.loc[:,[u1, u2 ]].values
+def get_kmean_lbl(dfHH, N_cluster, u1 = 'u1', u2 = 'u2'):
+    umap_result = dfHH.loc[:,[u1, u2 ]].values
     kmap = KMeans(n_clusters=N_cluster,n_init=30, algorithm='elkan',random_state=1178)
     kmap.fit(umap_result, sample_weight = None)
-    exact_pdh[f'k{N_cluster}'] = kmap.labels_ + 1 
+    dfHH[f'k{N_cluster}'] = kmap.labels_ + 1 
     return kmap
 
 

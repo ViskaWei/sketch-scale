@@ -23,3 +23,6 @@ bin-release/
 /old
 /plots
 __pycache__
+/code/hill/data
+*.txt
+/out
