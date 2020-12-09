@@ -1,0 +1,29 @@
+{
+    "in": "/scratch/ceph/szalay/swei20/cancerHH/AceCanZ/data/bki",
+    "nImg": 1,
+
+    "test":false,
+    "smooth": 2.0,
+    
+    "dtype":"uint64",
+    "base": 22,
+    "dim": 8,
+
+    "mode":"exact",
+    "topk":0.4,
+
+    "nCluster": 10,
+    "sci": false,
+
+    "seed": 112,
+    "name": "test",
+    "out": "./out/",
+    "saveMat": false,
+    "saveMask": false,
+    "saveStream": false,
+    "saveHHs": false,
+    "maskId": 0
+    
+}
+
+
