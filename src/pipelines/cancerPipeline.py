@@ -85,16 +85,22 @@ class CancerPipeline(BasePipeline):
                 logging.info('maskId out of range, saving 0th img')
         matPCA = ds.get_pc(self.dim)
         del ds
-        if self.save['mat']: self.save_txt(matPCA, 'mat')        
+        if self.save['mat']: save_dataset(self.out, matPCA, 'matPCA',fileFormat="txt")        
         return matPCA  
 
-    def run_step_save(self, dfNorm):
-        save_dataset(self.out, dfNorm, "norm", name=self.name, fileFormat="h5")
+    def run_step_norm(self, matPCA):
+        norm=Norm(matPCA, cutoff=self.cutoff)
+        assert norm.dim == self.dim
+        dfNorm, mask = norm.get_cancer_norm()
+        if self.cutoff is None:
+            save_dataset(self.out, norm.cutoff, "cutoff" ,fileFormat="pickle")
+        logging.info(" cutoff @:  {}".format(norm.cutoff))
+        del norm
+        if self.save['mask']: self.save_mask(mask,'mask')
+        return dfNorm
 
-    def save_txt(self, mat, filename):
-        name=f'{self.out}/{filename}.txt'
-        logging.info('  saving {}'.format(name))
-        np.savetxt( name, mat)
+    def run_step_save(self, dfNorm):
+        save_dataset(self.out, dfNorm, "dfNorm", name=self.name, fileFormat="csv")
     
     def save_mask(self,mask, filename):
         mask2d=mask.reshape((self.nImg,1004*1344))
@@ -114,16 +120,6 @@ class CancerPipeline(BasePipeline):
             np.savetxt(f'{self.out}/{filename}Id{maskId}.txt' , mask0)  
 
     
-    def run_step_norm(self, matPCA):
-        norm=Norm(matPCA, cutoff=self.cutoff)
-        assert norm.dim == self.dim
-        dfNorm, mask = norm.get_cancer_norm()
-        if self.cutoff is None:
-            save_dataset(self.out, norm.cutoff, "cutoff" ,fileFormat="pickle")
-        logging.info(" cutoff @:  {}".format(norm.cutoff))
-        del norm
-        if self.save['mask']: self.save_mask(mask,'mask')
-        return dfNorm
 
 
 

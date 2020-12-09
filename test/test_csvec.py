@@ -1,6 +1,6 @@
-from CountSketch import * 
 import time
-
+import torch
+from src.SnS.csvec import CSVec
 d = 50 * 10**2; c = 10**3; r = 5; k = 10
 
 g1 = torch.randint(0, 100000, (d,), dtype=torch.int64, device="cuda")

@@ -5,11 +5,11 @@ import torch
 LARGEPRIME = 2**61-1
 # torch.random.manual_seed(42)
 class CSVec(object):
-    def __init__(self, d, c, r, k, device=None):
-        self.r = r # num of rows
-        self.c = c # num of columns
+    def __init__(self, d, r, c, k, device=None):
+        self.r = int(r) # num of rows
+        self.c = int(c) # num of columns
         self.d = int(d) # vector dimensionality
-        if device is None:
+        if device is None or device == "None":
             device = 'cuda' if torch.cuda.is_available() else 'cpu'
         else:
             if (not isinstance(device, torch.device) and

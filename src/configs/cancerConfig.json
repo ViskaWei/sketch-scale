@@ -6,7 +6,6 @@
     "smooth": 2.0,
     
     "dtype":"uint64",
-    "base": 22,
     "dim": 8,
 
     "mode":"exact",
@@ -22,8 +21,6 @@
     "out": "./runs/t1",
     "saveMat": false,
     "saveMask": true,
-    "saveStream": false,
-    "saveHHs": true,
     "maskId": 26
     
 }
