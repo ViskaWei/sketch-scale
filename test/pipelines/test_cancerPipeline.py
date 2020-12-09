@@ -14,6 +14,7 @@ from src.pipelines.cancerPipeline import CancerPipeline
 
 
 def main():
+    sys.argv = ['test_cancerPipeline', '--config', "/home/swei20/sketch-scale/src/configs/cellConfig_test.json"]
     p=CancerPipeline()
     p.prepare()
     p.run()

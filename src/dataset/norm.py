@@ -52,7 +52,7 @@ class Norm():
         return dfNorm, mask
 
 
-    # def get_unit_ball(self, intensity, cut):
+    # def get_intensity_norm(self, intensity, cut):
     #     mask = intensity > cut
     #     logging.info('stream length m = {}'.format(np.sum(mask)))
     #     mask=mask.astype('bool')

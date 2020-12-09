@@ -3,7 +3,6 @@
     "nImg": 1,
 
     "test":false,
-    "smooth": 2.0,
     
     "dtype":"uint64",
     "base": 22,

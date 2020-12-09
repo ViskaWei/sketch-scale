@@ -84,6 +84,3 @@ class CancerDataset():
         logging.info(" PCA output Shape:  {}".format(pc.shape))
         return pc 
 
-    # print('========= Intensity ==============')
-    # intensity = (np.sum(pca_results**2, axis = 1))**0.5
-    # return intensity, pca_results

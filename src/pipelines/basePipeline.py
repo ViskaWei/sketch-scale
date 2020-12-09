@@ -50,7 +50,6 @@ class BasePipeline():
         return args
     
 ##################################################APPLY ARGS###############
-        
     def apply_args(self):
         self.apply_init_args()
         self.apply_input_args()

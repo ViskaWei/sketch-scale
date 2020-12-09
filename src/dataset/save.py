@@ -1,13 +1,27 @@
 import h5py
 import numpy as np
+import pickle
 
 
-def save_dataset(fileName,data,dataName):
-    with h5py.File(f'{fileName}.hdf5', 'w') as f:
-        f.create_dataset(dataName, shape=data.shape, data=data)  
 
-def load_dataset(fileName, dataName, sl=None):
-    with h5py.File(f'{fileName}.hdf5', 'r') as f: 
-        data = f[dataName][sl]
-    print(f"loading {dataName} of size {data.shape}")
+
+def save_dataset(saveDir,data,dataName, name=None, fileFormat="h5"):
+    if fileFormat=="h5":
+        with h5py.File(f'{saveDir}/{name}.hdf5', 'w') as f:
+            f.create_dataset(dataName, shape=data.shape, data=data)  
+    elif fileFormat == "pickle":
+        pickle.dump(data, open(f'{saveDir}/{dataName}.txt','wb'))
+    else:
+        raise "error saving"
+
+
+def load_dataset(saveDir, dataName, name=None, sl=None, fileFormat="h5"):
+    if fileFormat=="h5":
+        with h5py.File(f'{saveDir}/{name}.hdf5', 'r') as f: 
+            data = f[dataName][sl]
+        print(f"loading {dataName} of size {data.shape}")
+    elif fileFormat =="pickle":
+        data = pickle.load(open(saveDir,'rb')) 
+    else:
+        raise "error loading"
     return data

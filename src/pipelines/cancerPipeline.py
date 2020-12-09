@@ -7,6 +7,8 @@ import pickle
 from src.dataset.cancerDataset import CancerDataset
 from src.pipelines.basePipeline import BasePipeline
 from src.dataset.norm import Norm
+from src.dataset.save import save_dataset, load_dataset
+
 
 class CancerPipeline(BasePipeline):
     def __init__(self, logging=True):
@@ -31,7 +33,6 @@ class CancerPipeline(BasePipeline):
         # ===========================  PREPRO  ================================
         parser.add_argument('--cutoff', type=str, default=None, help='Bg cutoff\n')
 
-
         
     def prepare(self):
         super().prepare()
@@ -52,7 +53,7 @@ class CancerPipeline(BasePipeline):
     def apply_prepro_args(self):
         if 'cutoff' in self.args and self.args['cutoff'] is not None:
             try:
-                self.cutoff=pickle.load(open(self.args['cutoff'],'rb')) 
+                self.cutoff=load_dataset(self.args['cutoff'], fileFormat="pickle") 
             except:
                 self.cutoff=None
                 logging.info('cannot load cutoff, calculating again')
@@ -118,9 +119,8 @@ class CancerPipeline(BasePipeline):
         assert norm.dim == self.dim
         dfNorm, mask = norm.get_cancer_norm()
         if self.cutoff is None:
-            pickle.dump(norm.cutoff, open(f'{self.out}/cutoff.txt','wb'))
-            # self.cutoff = bulk.cutoff
-        logging.info(" cutoff @:  {}".format(self.cutoff))
+            save_dataset(self.out, norm.cutoff, "cutoff" ,fileFormat="pickle")
+        logging.info(" cutoff @:  {}".format(norm.cutoff))
         del norm
         if self.save['mask']: self.save_mask(mask,'mask')
         return dfNorm
