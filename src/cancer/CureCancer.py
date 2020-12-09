@@ -90,12 +90,12 @@ def main():
         assert EXACT ==0
         topk=20000
         print(f'=================DECODE {ftr_len} DIM =================')
-        HH_pd=get_HH_pd(stream,base,ftr_len, dtype, EXACT, topk, r=16, d=1000000,c=None,device=None)
-        HH_pd.to_csv(f'{PRETRAIN}/HH_pd_b{base}e{EXACT}.csv',index=False)
+        dfHH=get_HH_pd(stream,base,ftr_len, dtype, EXACT, topk, r=16, d=1000000,c=None,device=None)
+        dfHH.to_csv(f'{PRETRAIN}/HH_pd_b{base}e{EXACT}.csv',index=False)
     elif PREPRO_UMAP:
         print(f'=================LOADING HH_pd==============')
-        HH_pd=pd.read_csv(f'{PRETRAIN}/HH_pd_b{base}e{EXACT}.csv')
-        print(HH_pd.head()) 
+        dfHH=pd.read_csv(f'{PRETRAIN}/HH_pd_b{base}e{EXACT}.csv')
+        print(dfHH.head()) 
 
     if PREPRO_UMAP:
         print(f'=================GETTING UMAP =================')
@@ -103,8 +103,8 @@ def main():
         # HH_pdc=HH_pd[HH_pd['freq']>lb]
         # # print(len(HH_pdc),len(HH_pd),HH_pd['freq'][0],'lb',lb,'HHratio',lbr)
         # if len(HH_pdc)>20000: 
-        HH_pdc=HH_pd[:20000]
-        print(len(HH_pdc),len(HH_pd),HH_pd['freq'][0])
+        HH_pdc=dfHH[:20000]
+        print(len(HH_pdc),len(dfHH),dfHH['freq'][0])
         print(f'=================LOADING HH_pd==============')
         umapT=get_umap_pd(HH_pdc,list(range(ftr_len)))
         # print(HH_pdc.keys())
@@ -139,8 +139,8 @@ def main():
     
     if UPLOAD_SCI:
         username = 'viskawei'
-        password='Bstrong1178!'
-    # password = getpass.getpass()
+        # password='Bstrong1178!'
+        password = getpass.getpass()
         sciserver_token = Authentication.login(username, password)
         CasJobs.uploadPandasDataFrameToTable(dataFrame=HH_pdc, tableName=f'b{base}sm{SMTH}f{name}sig3e{EXACT}_v1', context="MyDB")
     

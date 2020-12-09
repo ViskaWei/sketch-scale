@@ -5,7 +5,10 @@ import logging
 import argparse
 import numpy as np
 
-class Script():
+class BasePipeline():
+    '''
+    Setting up pipline for taking command line argment specifying output, name, dim, seed, config
+    '''
  
     def __init__(self):
         self.parser = None
@@ -14,7 +17,6 @@ class Script():
         self.name='test'
         self.dim=None
         self.debug=False
-        ######################### Init ########################
         
     def add_args(self,parser):
         parser.add_argument('--config', type=str, help='Load config from json file.')

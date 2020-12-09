@@ -4,15 +4,15 @@ import time
 import numpy as np
 import pickle
 
-from cancer.scripts.script import Script
-from cancer.prepro.data.cellDataset import CellDataset
+from src.pipelines.basePipeline import BasePipeline
+from src.dataset.cancerDataset import CancerDataset
 from cancer.prepro.data.bulk import Bulk
 from util.prepro import get_encode_stream
 from util.HH import get_HH_pd
 from cancer.postpro.project import get_umap_pd,get_kmean_lbl,get_pred_stream
  
 
-class CellPipeline(Script):
+class CancerPipeline(BasePipeline):
     def __init__(self, logging=True):
         super().__init__()
         self.nImg=None
@@ -35,13 +35,8 @@ class CellPipeline(Script):
         parser.add_argument('--saveMask', type=bool, help='Saving mask\n')
         parser.add_argument('--saveStream', type=bool, help='Saving stream\n')
         parser.add_argument('--saveHHs', type=bool, help='Saving HH\n')
-
         parser.add_argument('--sketchMode', type=str, help='exact or cs\n')
-
-
         parser.add_argument('--maskId', type=int, help='Id of mask saved\n')
-
-
         # ===========================  PREPRO  ================================
         parser.add_argument('--cutoff', type=str, default=None, help='Bg cutoff\n')
         parser.add_argument('--base', type=int, default=None, help='Base\n')
@@ -104,27 +99,24 @@ class CellPipeline(Script):
 
     def run(self):
         mat = self.run_step_load()
-        df_norm=self.run_step_norm(mat)
-        stream=self.run_step_encode(df_norm)
-        HHs = self.run_step_sketch(stream)
-        self.run_step_save()
+        dfNorm=self.run_step_norm(mat)
+        # stream=self.run_step_encode(dfNorm)
+        # HHs = self.run_step_sketch(stream)
+        # self.run_step_save()
+        return dfNorm
 
 
     def run_step_load(self):
-        ds=CellDataset(self.args['in'] ,self.nImg)
-        img_loader=ds.get_img_loader(self.args['test'], smooth=self.smooth)  
-        ds.load(img_loader, True)
+        ds=CancerDataset(self.args['in'] ,nImg=self.nImg, isTest=self.args['test'], smooth=self.smooth)
         self.nImg=ds.nImg
         if self.save['maskId'] is not None:
             if self.save['maskId'] >self.nImg:
                 self.save['maskId'] = 0
                 logging.info('maskId out of range, saving 0th img')
-
-        ds.get_pc(self.dim)
-        mat = ds.get_bulk()
+        matPCA = ds.get_pc(self.dim)
         del ds
-        if self.save['mat']: self.save_txt(mat, 'mat')        
-        return mat  
+        if self.save['mat']: self.save_txt(matPCA, 'mat')        
+        return matPCA  
 
     def run_step_save(self):
         pass
@@ -153,35 +145,34 @@ class CellPipeline(Script):
 
     
     def run_step_norm(self, mat):
-        bulk=Bulk(mat)
+        bulk=Bulk(mat, cutoff=self.cutoff)
         assert bulk.dim == self.dim
-        intensity=bulk.get_intensity()
+        dfNorm, mask = bulk.get_cancer_norm()
         if self.cutoff is None:
-            self.cutoff = bulk.get_cutoff(intensity)
-            pickle.dump(self.cutoff,open(f'{self.out}/cutoff.txt','wb'))
+            pickle.dump(bulk.cutoff,open(f'{self.out}/cutoff.txt','wb'))
+            self.cutoff = bulk.cutoff
         logging.info(" cutoff @:  {}".format(self.cutoff))
-        df_norm, mask = bulk.get_unit_ball(intensity, self.cutoff)
         del bulk
         if self.save['mask']: self.save_mask(mask,'mask')
-        return df_norm
+        return dfNorm
 
-    def run_step_encode(self, df_norm):
-        stream=get_encode_stream(df_norm, self.base, self.dtype)
-        if self.save['stream']: 
-            self.save_txt(stream, 'stream')
-        elif self.idx is not None:
-            self.save_txt(stream[self.idx[0]:self.idx[1]],f'stream{self.idx[-1]}')
-        return stream
+    # def run_step_encode(self, dfNorm):
+    #     stream=get_encode_stream(dfNorm, self.base, self.dtype)
+    #     if self.save['stream']: 
+    #         self.save_txt(stream, 'stream')
+    #     elif self.idx is not None:
+    #         self.save_txt(stream[self.idx[0]:self.idx[1]],f'stream{self.idx[-1]}')
+    #     return stream
     
-    def run_step_sketch(self, stream):
-        if self.sketchMode=='exact':
-            HH_pd=get_HH_pd(stream,self.base,self.dim, self.dtype, True, None)
-        else:
-            raise 'exact only now'
-            # HH_pd=get_HH_pd(stream,base,ftr_len, dtype, False, topk, r=16, d=1000000,c=None,device=None)
-        if self.save['HHs']:   
-            HH_pd.to_csv(f'{self.out}/HH_pd_b{self.base}_{self.sketchMode}.csv',index=False)
-        return HH_pd
+    # def run_step_sketch(self, stream):
+    #     if self.sketchMode=='exact':
+    #         HH_pd=get_HH_pd(stream,self.base,self.dim, self.dtype, True, None)
+    #     else:
+    #         raise 'exact only now'
+    #         # HH_pd=get_HH_pd(stream,base,ftr_len, dtype, False, topk, r=16, d=1000000,c=None,device=None)
+    #     if self.save['HHs']:   
+    #         HH_pd.to_csv(f'{self.out}/HH_pd_b{self.base}_{self.sketchMode}.csv',index=False)
+    #     return HH_pd
 
 
     
