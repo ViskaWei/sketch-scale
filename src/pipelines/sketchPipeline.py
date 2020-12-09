@@ -18,9 +18,6 @@ class SketchPipeline(BasePipeline):
         self.base=None
         self.save = {'stream':False, 'HHs':False}
 
-
-
-
         
         
     def add_args(self, parser):

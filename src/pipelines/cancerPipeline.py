@@ -69,10 +69,10 @@ class CancerPipeline(BasePipeline):
         logging.info('saving {}'.format(self.save.items()))
         
 
-    def run(self):
+    def run(self, saveNorm=False):
         matPCA = self.run_step_load()
         dfNorm=self.run_step_norm(matPCA)
-        self.run_step_save()
+        if saveNorm: self.run_step_save(dfNorm)
         return dfNorm
 
 
@@ -88,8 +88,8 @@ class CancerPipeline(BasePipeline):
         if self.save['mat']: self.save_txt(matPCA, 'mat')        
         return matPCA  
 
-    def run_step_save(self):
-        pass
+    def run_step_save(self, dfNorm):
+        save_dataset(self.out, dfNorm, "norm", name=self.name, fileFormat="h5")
 
     def save_txt(self, mat, filename):
         name=f'{self.out}/{filename}.txt'

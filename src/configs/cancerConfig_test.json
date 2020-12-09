@@ -16,7 +16,7 @@
 
     "seed": 112,
     "name": "test",
-    "out": "./out/",
+    "out": "../../out",
     "saveMat": false,
     "saveMask": false,
     "saveStream": false,

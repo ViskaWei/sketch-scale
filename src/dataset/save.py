@@ -5,7 +5,7 @@ import pickle
 
 
 
-def save_dataset(saveDir,data,dataName, name=None, fileFormat="h5"):
+def save_dataset(saveDir,data,dataName, name=None, fileFormat=None):
     if fileFormat=="h5":
         with h5py.File(f'{saveDir}/{name}.hdf5', 'w') as f:
             f.create_dataset(dataName, shape=data.shape, data=data)  
@@ -15,7 +15,7 @@ def save_dataset(saveDir,data,dataName, name=None, fileFormat="h5"):
         raise "error saving"
 
 
-def load_dataset(saveDir, dataName, name=None, sl=None, fileFormat="h5"):
+def load_dataset(saveDir, dataName, name=None, sl=None, fileFormat=None):
     if fileFormat=="h5":
         with h5py.File(f'{saveDir}/{name}.hdf5', 'r') as f: 
             data = f[dataName][sl]
