@@ -49,6 +49,7 @@ class SketchPipeline(BasePipeline):
         super().prepare()
         self.apply_model_args()
 
+
     def apply_model_args(self):
         self.apply_encode_args()
         self.apply_sketch_args()
@@ -58,7 +59,7 @@ class SketchPipeline(BasePipeline):
             
     def apply_encode_args(self):
         if self.dfNorm is None and 'dfNorm' in self.args and self.args['dfNorm'] is not None:
-            self.dfNorm = load_dataset(self.out, 'dfNorm', name = self.name, fileFormat="h5")
+            self.dfNorm = load_dataset(None, None, fileFormat="csv", dirPath = self.args['dfNorm'])
         if 'base' in self.args and self.args['base'] is not None:
             self.base=self.args['base']
         else:
@@ -89,6 +90,7 @@ class SketchPipeline(BasePipeline):
 
 
     def run(self):
+
         dfHH = self.run_step_SnS()
         self.run_step_cluster(dfHH) 
 

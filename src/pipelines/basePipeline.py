@@ -6,6 +6,7 @@ import argparse
 import numpy as np
 from src.dataset.save import save_dataset
 
+
 class BasePipeline():
     '''
     Setting up pipline for taking command line argment specifying output, name, dim, seed, config
@@ -44,7 +45,7 @@ class BasePipeline():
         if self.args is None:
             self.args = self.parser.parse_args().__dict__
             self.get_configs(self.args)
-        # print(self.args)
+        print(self.args)
     
     def is_arg(self, name, args =None):
         args = args or self.args
@@ -89,6 +90,8 @@ class BasePipeline():
     
     def load_args_jsons(self, args):
         configFiles = self.get_arg('config', args=args)
+        if type(configFiles) is not list:
+            configFiles = [configFiles] 
         for configFile in configFiles:
             configArg = self.load_args_json(configFile)
             args.update(configArg)

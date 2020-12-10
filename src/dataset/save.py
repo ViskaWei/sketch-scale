@@ -23,7 +23,7 @@ def save_dataset(saveDir,data,dataName, name=None, fileFormat=None, suffix=None)
         raise "error saving"
 
 
-def load_dataset(saveDir, dataName, name=None, fileFormat=None, suffix=None):
+def load_dataset(saveDir, dataName, name=None, fileFormat=None, suffix=None, dirPath=None):
     if fileFormat=="h5":
         with h5py.File(f'{saveDir}/{name}.hdf5', 'r') as f: 
             data = f[dataName][()]
@@ -31,7 +31,10 @@ def load_dataset(saveDir, dataName, name=None, fileFormat=None, suffix=None):
     elif fileFormat =="pickle":
         data = pickle.load(open(f'{saveDir}/{dataName}.{suffix}','rb')) 
     elif fileFormat == "csv":
-        data = pd.read_csv(f'{saveDir}/{dataName}.csv')
+        if dirPath is None:
+            data = pd.read_csv(f'{saveDir}/{dataName}.csv')
+        else:
+            data = pd.read_csv(dirPath)
     elif fileFormat == "txt":
         data = np.loadtxt(f'{saveDir}/{dataName}.txt')
     elif fileFormat == "joblib":

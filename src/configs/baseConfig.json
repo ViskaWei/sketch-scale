@@ -1,6 +1,6 @@
 {
     "seed": 112,
     "name": "test",
-    "out": "../../out",
+    "out": "./out",
     "dim": 8
 }
