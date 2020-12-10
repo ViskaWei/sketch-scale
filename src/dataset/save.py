@@ -3,6 +3,7 @@ import numpy as np
 import pandas as pd
 import pickle
 import logging
+import joblib
 
 
 def save_dataset(saveDir,data,dataName, name=None, fileFormat=None, suffix=None):
@@ -16,6 +17,8 @@ def save_dataset(saveDir,data,dataName, name=None, fileFormat=None, suffix=None)
         data.to_csv(f'{saveDir}/{dataName}.csv', index=False)
     elif fileFormat == "txt":
         np.savetxt(f'{saveDir}/{dataName}.txt', data)
+    elif fileFormat == "joblib":
+        joblib.dump(data, f'{saveDir}/{dataName}.sav')
     else:
         raise "error saving"
 
@@ -31,6 +34,8 @@ def load_dataset(saveDir, dataName, name=None, fileFormat=None, suffix=None):
         data = pd.read_csv(f'{saveDir}/{dataName}.csv')
     elif fileFormat == "txt":
         data = np.loadtxt(f'{saveDir}/{dataName}.txt')
+    elif fileFormat == "joblib":
+        data = joblib.load(f'{saveDir}/{dataName}.sav')
     else:
         raise "error loading"
     return data

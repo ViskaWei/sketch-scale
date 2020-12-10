@@ -7,8 +7,8 @@ from collections import Counter
 from src.sketch.csvec import CSVec
 
 class SnS(object):
-    def __init__(self, dfNorm, base, sketchMode=None, topk = 20000, \
-                                        csParams=None, dtype=None, logging=True):
+    def __init__(self, dfNorm, base, dtype=None, sketchMode=None,\
+                             topk = 20000, csParams=None):
         self.sketchMode=sketchMode or "exact"
         self.dfNorm= dfNorm
         self.base = base
@@ -16,7 +16,7 @@ class SnS(object):
         self.dim = len(dfNorm.columns)
         self.stream = None
         self.topk = topk
-        self.csParams = csParams
+        self.csParams = csParams   # d, r, c, device
         self.HH = None
         self.freq = None
         self.dfHH = None

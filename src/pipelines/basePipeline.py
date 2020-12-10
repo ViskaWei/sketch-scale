@@ -32,26 +32,70 @@ class BasePipeline():
         parser.add_argument('--out', type=str, help='output dir\n')
         parser.add_argument('--dim', type=int, default=None,  help='Latent Representation dimension\n')
         
+
     def create_parser(self):
         self.parser = argparse.ArgumentParser()
-        self.add_args(self.parser)
+        self.add_subparsers(self.parser)
+
+    def add_subparsers(self, parser):
+        self.add_args(parser)
     
     def parse_args(self):
         if self.args is None:
             self.args = self.parser.parse_args().__dict__
-            self.get_configs()
-        
-    def get_configs(self):
-        configs = []
-        if 'config' in self.args and self.args['config'] is not None:
-            configs = self.load_args_json(self.args['config'])
-            for key, val in configs.items():
-                if key not in self.args or self.args[key] is None:
-                    self.args[key] = val
-        else:
-            raise "congif error"
+            self.get_configs(self.args)
+        # print(self.args)
     
+    def is_arg(self, name, args =None):
+        args = args or self.args
+        return name in args and args[name] is not None
+
+    def get_arg(self, name, args=None, default=None):
+        args = args or self.args
+        if name in args and args[name] is not None: 
+            return args[name]
+        elif default is not None:
+            return default
+        else:
+            raise f'arg {name} not specified in command line'
+    
+    def get_loop_from_arg(self, name, fn = None):
+        loopArgs = self.get_arg(name)
+        if fn is None:
+            loopFn = lambda x: int(loopArgs[0]**(loopArgs[1] + x))
+        else:
+            loopFn =fn(loopArgs)
+        return [loopFn(ii) for ii in range(loopArgs[2])]
+
+    def get_config_args(self, args=None):
+        args = args or self.args
+        for key, val in args.items():
+            if self.is_arg(key,args=args):
+                self.args[key] = val
+    
+    def update_nested_configs(self,args):
+        args = self.load_args_jsons(args)
+        while self.is_arg('config',args=args): 
+            configArg = self.load_args_jsons(args)
+            del args['config']
+            args.update(configArg)
+        return args
+
+    def get_configs(self, args):
+        args = self.update_nested_configs(args)
+        # print('configArgs', args)
+        self.get_config_args(args)
+        # print('get_configs_final',self.args)
+    
+    def load_args_jsons(self, args):
+        configFiles = self.get_arg('config', args=args)
+        for configFile in configFiles:
+            configArg = self.load_args_json(configFile)
+            args.update(configArg)
+        return args
+
     def load_args_json(self, filename):
+        # print(filename)
         with open(filename, 'r') as f:
             args = json.load(f)
         return args

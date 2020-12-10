@@ -1,6 +1,14 @@
 {
     "base": 22,
+    "dtype": "uint64",
+    "dfNorm": "/home/swei20/sketch-scale/out/dfNorm.csv",
     "saveStream": false,
-    "saveHH": true,    
-    "dfNorm": "/home/swei20/sketch-scale/out/dfNorm.csv"
+
+    "sketchMode": "exact",
+    "ratio": 1.0,
+    "saveHH": true,
+
+    "nCluster": 10,
+    "saveUMAP": true,
+    "saveKMAP": true
 }

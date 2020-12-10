@@ -1,5 +1,3 @@
-import copy
-import time
 import umap
 import numpy as np
 import pandas as pd
@@ -7,31 +5,37 @@ from sklearn.cluster import KMeans
 
 
 class Embed(object):
-    def __init__(self, dfHH, dim, nCluster):
+    def __init__(self, dfHH, dim, nCluster, ratio = None):
+        if self.ratio is not None:  dfHH = dfHH[dfHH['ra']<ratio] 
+        self.ratio = ratio 
         self.dfHH = dfHH
         self.dim = dim
         self.ftr = dfHH.columns[:dim]
         self.nCluster = nCluster or 10
         self.kmap = None
 
-    def get_umap_pd(self):
-        umapT = umap.UMAP(n_components=2,min_dist=0.0,n_neighbors=50, random_state=1178)
+    def run(self):
+        self.get_umapT()
+        self.get_cluster()
+
+
+    def get_umapT(self):
+        umapT = umap.UMAP(n_components=2, min_dist=0.0, n_neighbors=50, random_state=1178)
         matUMAP = umapT.fit_transform(self.dfHH[self.ftr].values)
         self.dfHH['u1'] = matUMAP[:,0]
         self.dfHH['u2'] = matUMAP[:,1]
         self.umapT = umapT
 
-    def get_mapping_pd(self, df, ftr):
+    def get_mapped(self, df, ftr):
         # lb,ub=int(HH_pd['freq'][0]*lbr),int(HH_pd['freq'][0])
         # HH_pdc=HH_pd[HH_pd['freq']>lb]
         # print(f'lpdc: {len(HH_pdc)} lpd: {len(HH_pd)} ub:{ub} lb:{lb} HHratio:{lbr}')
         matUMAPED=self.umapT.transform(df[ftr])   
         df['u1']=matUMAPED[:,0]
         df['u2']=matUMAPED[:,1]
-        # sns.scatterplot('u1','u2',data=HH_pdc,alpha=0.7,s=10, color='k', marker="+")
         return df
 
-    def get_kmean_lbl(self, u1 = 'u1', u2 = 'u2'):
+    def get_cluster(self, u1 = 'u1', u2 = 'u2'):
         umap_result = self.dfHH.loc[:, [u1, u2]].values
         kmap = KMeans(n_clusters=self.nCluster, n_init=30, algorithm='elkan',random_state=926)
         kmap.fit(umap_result, sample_weight = None)
@@ -39,7 +43,7 @@ class Embed(object):
         self.kmap = kmap
 
     
-    
+
 
 # def get_freq_aug(df):
 #     freq=df['freq'].values
