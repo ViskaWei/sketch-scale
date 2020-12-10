@@ -18,9 +18,8 @@ class SketchPipeline(BasePipeline):
         self.dfNorm= dfNorm
         self.base=None
         self.dtype
-        self.save = {'stream':False, 'HHs':False}
-
-        
+        self.save = {'stream':False, 'HH':False}
+      
         
     def add_args(self, parser):
         super().add_args(parser)
@@ -31,7 +30,7 @@ class SketchPipeline(BasePipeline):
 
         parser.add_argument('--sketchMode', type=str, help='exact or cs\n')
         parser.add_argument('--saveStream', type=bool, help='Saving stream\n')
-        parser.add_argument('--saveHHs', type=bool, help='Saving HH\n')
+        parser.add_argument('--saveHH', type=bool, help='Saving HH\n')
 
 
     def prepare(self):
@@ -61,19 +60,20 @@ class SketchPipeline(BasePipeline):
     def apply_save_args(self):
         if 'saveStream' in self.args and self.args['saveStream'] is not None:
             self.save['stream']=self.args['saveStream']
-        if 'saveHHs' in self.args and self.args['saveHHs'] is not None:
-            self.save['HHs']=self.args['saveHHs']
+        if 'saveHH' in self.args and self.args['saveHH'] is not None:
+            self.save['HH']=self.args['saveHH']
         logging.info('saving {}'.format(self.save.items()))
 
     def run(self):
-        stream=self.run_step_encode(self.dfNorm)
-        HHs = self.run_step_sketch(stream)
-        return HHs
+        dfHH = self.run_step_SnS()
+        return 
 
     def run_step_SnS(self):
         sns=SnS(self.dfNorm, self.base, self.dtype)
-        stream = sns.get_encode_stream()
-        HHs = self.run_step_sketch(stream)
+        sns.run()
+        if self.save['stream']: self.save(sns.stream, "stream", "h5") 
+        if self.save['HH']: self.save(sns.dfHH, "dfHH", "csv") 
+        return sns.dfHH
         
 
     # def run_step_encode(self, dfNorm):
@@ -90,6 +90,6 @@ class SketchPipeline(BasePipeline):
     #     else:
     #         raise 'exact only now'
     #         # dfHH=get_dfHH(stream,base,ftr_len, dtype, False, topk, r=16, d=1000000,c=None,device=None)
-    #     if self.save['HHs']:   
+    #     if self.save['HH']:   
     #         dfHH.to_csv(f'{self.out}/dfHH_b{self.base}_{self.sketchMode}.csv',index=False)
     #     return dfHH

@@ -1,5 +1,4 @@
 import copy
-from src.util.HH import get_CS_HH
 import time
 import torch
 import numpy as np
@@ -22,6 +21,10 @@ class SnS(object):
         self.freq = None
         self.dfHH = None
 
+    def run(self):
+        self.get_encode_stream()
+        self.get_HH_pd()
+        
 ######################################## ENCODE ########################################
     def get_encode_stream(self):
         mat=(self.dfNorm*(self.base-1)).round()
@@ -97,4 +100,4 @@ class SnS(object):
         print('sketch counting time:{:.2f}'.format(t))
         self.HH, self.freq = HHfreq[:,idx][:,:self.topk]
 
-######################################## HeavyHitter ########################################
+###############################################################################

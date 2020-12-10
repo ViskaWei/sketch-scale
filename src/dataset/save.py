@@ -20,10 +20,10 @@ def save_dataset(saveDir,data,dataName, name=None, fileFormat=None, suffix=None)
         raise "error saving"
 
 
-def load_dataset(saveDir, dataName, name=None, sl=None, fileFormat=None, suffix=None):
+def load_dataset(saveDir, dataName, name=None, fileFormat=None, suffix=None):
     if fileFormat=="h5":
         with h5py.File(f'{saveDir}/{name}.hdf5', 'r') as f: 
-            data = f[dataName][sl]
+            data = f[dataName][()]
         logging.info(f"loading {dataName} of size {data.shape}")
     elif fileFormat =="pickle":
         data = pickle.load(open(f'{saveDir}/{dataName}.{suffix}','rb')) 

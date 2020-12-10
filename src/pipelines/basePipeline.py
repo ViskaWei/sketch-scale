@@ -4,6 +4,7 @@ import json
 import logging
 import argparse
 import numpy as np
+from src.dataset.save import save_dataset
 
 class BasePipeline():
     '''
@@ -17,6 +18,12 @@ class BasePipeline():
         self.name='test'
         self.dim=None
         self.debug=False
+                
+    def prepare(self):
+        self.create_parser()
+        self.parse_args() 
+        self.setup_logging()
+        self.apply_args()
         
     def add_args(self,parser):
         parser.add_argument('--config', type=str, help='Load config from json file.')
@@ -108,9 +115,6 @@ class BasePipeline():
             return logging.DEBUG
         else: 
             return logging.INFO
-            
-    def prepare(self):
-        self.create_parser()
-        self.parse_args() 
-        self.setup_logging()
-        self.apply_args()
+
+    def save(self, data, dataName, fileFormat=None, suffix=None):
+        save_dataset(self.out,data,dataName, name=self.name, fileFormat=fileFormat, suffix=suffix)

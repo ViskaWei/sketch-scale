@@ -20,7 +20,7 @@
     "saveMat": false,
     "saveMask": false,
     "saveStream": false,
-    "saveHHs": false,
+    "saveHH": false,
     "maskId": 0
     
 }
