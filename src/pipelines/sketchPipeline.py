@@ -17,7 +17,8 @@ class SketchPipeline(BasePipeline):
         self.sketchMode='exact'
         self.dfNorm= dfNorm
         self.base=None
-        self.dtype
+        self.sketchMode = None
+        self.dtype = "uint64"
         self.save = {'stream':False, 'HH':False}
       
         
@@ -69,7 +70,8 @@ class SketchPipeline(BasePipeline):
         return 
 
     def run_step_SnS(self):
-        sns=SnS(self.dfNorm, self.base, self.dtype)
+        sns=SnS(self.dfNorm, self.base, self.dtype, \
+                        sketchMode=self.sketchMode)
         sns.run()
         if self.save['stream']: self.save(sns.stream, "stream", "h5") 
         if self.save['HH']: self.save(sns.dfHH, "dfHH", "csv") 

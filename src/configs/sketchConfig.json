@@ -1,5 +1,6 @@
 {
     "base": 22,
     "saveStream": false,
-    "saveHH": true    
+    "saveHH": true,    
+    "dfNorm": "/home/swei20/sketch-scale/out/dfNorm.csv"
 }

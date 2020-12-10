@@ -7,12 +7,12 @@ from collections import Counter
 from src.sketch.csvec import CSVec
 
 class SnS(object):
-    def __init__(self, dfNorm, base, sketchMode='exact', topk = 20000, \
-                                        csParams=None, dtype="uint64", logging=True):
-        self.sketchMode=sketchMode
+    def __init__(self, dfNorm, base, sketchMode=None, topk = 20000, \
+                                        csParams=None, dtype=None, logging=True):
+        self.sketchMode=sketchMode or "exact"
         self.dfNorm= dfNorm
         self.base = base
-        self.dtype = dtype
+        self.dtype = dtype or "uint64"
         self.dim = len(dfNorm.columns)
         self.stream = None
         self.topk = topk
