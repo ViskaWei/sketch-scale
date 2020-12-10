@@ -6,7 +6,7 @@ from sklearn.cluster import KMeans
 
 class Embed(object):
     def __init__(self, dfHH, dim, nCluster, ratio = None):
-        if self.ratio is not None:  dfHH = dfHH[dfHH['ra']<ratio] 
+        if ratio is not None:  dfHH = dfHH[dfHH['ra']<ratio] 
         self.ratio = ratio 
         self.dfHH = dfHH
         self.dim = dim
