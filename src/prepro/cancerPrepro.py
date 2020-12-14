@@ -1,18 +1,13 @@
 import logging
 import numpy as np
 import pandas as pd
+from src.prepro.normFn import get_min_max_norm
 
-class Norm():
+class CancerPrepro():
     def __init__(self, mat, cutoff=None):
         self.mat=mat
         self.dim=len(mat[0])
         self.cutoff=cutoff
-
-    def get_min_max_norm(self, df):
-        vmin,vmax=df.min().min(), df.max().max()
-        dfNorm=((df-vmin)/(vmax-vmin))
-        assert ((dfNorm>=0) & (dfNorm<=1)).all().all()
-        return dfNorm
 
     ###################### operations unique to cancer data ##########################
     def get_cancer_norm(self):
@@ -48,7 +43,7 @@ class Norm():
         intensityCut=intensity[mask]
         dfPCA=pd.DataFrame(self.mat[mask],columns=[f'd{i}' for i in range(self.dim)])
         dfNorm= np.divide(dfPCA, intensityCut[:,None])
-        dfNorm=self.get_min_max_norm(dfNorm)
+        dfNorm=get_min_max_norm(dfNorm)
         return dfNorm, mask
 
 

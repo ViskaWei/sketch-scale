@@ -6,7 +6,7 @@ import pandas as pd
 from collections import Counter
 from src.sketch.csvec import CSVec
 
-class SnS(object):
+class SnS():
     def __init__(self, dfNorm, base, dtype=None, sketchMode=None,\
                              topk = 20000, csParams=None):
         self.sketchMode=sketchMode or "exact"

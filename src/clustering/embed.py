@@ -3,46 +3,55 @@ import numpy as np
 import pandas as pd
 from sklearn.cluster import KMeans
 
+# pd.options.mode.chained_assignment = None  
 
 class Embed(object):
-    def __init__(self, dfHH, dim, nCluster, ratio = None):
+    def __init__(self, dfHH, outDim = 2 , ratio = None, inDim=None, nCluster=None):
         if ratio is not None:  dfHH = dfHH[dfHH['ra']<ratio] 
         self.ratio = ratio 
         self.dfHH = dfHH
-        self.dim = dim
-        self.ftr = dfHH.columns[:dim]
-        self.nCluster = nCluster or 10
+        self.ftr = None
+        self.nCluster = None
         self.kmap = None
+        self.outDim = outDim
+        self.matUMAP = None
+
+        self.init(inDim, nCluster)
+
+    def init(self, inDim, nCluster):
+        ftrLen = np.where(self.dfHH.columns == "HH")[0][0]
+        if inDim is not None:  assert inDim == ftrLen
+        self.ftr = self.dfHH.columns[:ftrLen]
+        self.nCluster = nCluster or 10
 
     def run(self):
         self.get_umapT()
         self.get_cluster()
 
-
     def get_umapT(self):
-        umapT = umap.UMAP(n_components=2, min_dist=0.0, n_neighbors=50, random_state=1178)
-        matUMAP = umapT.fit_transform(self.dfHH[self.ftr].values)
-        self.dfHH['u1'] = matUMAP[:,0]
-        self.dfHH['u2'] = matUMAP[:,1]
+        umapT = umap.UMAP(n_components=self.outDim, min_dist=0.0, n_neighbors=50, random_state=926)
+        self.matUMAP = umapT.fit_transform(self.dfHH[self.ftr].values)
+        for i in range(self.outDim):
+            self.dfHH[f'u{i+1}'] = pd.Series(self.matUMAP[:,i], index=self.dfHH.index)
         self.umapT = umapT
 
     def get_mapped(self, df, ftr):
-        # lb,ub=int(HH_pd['freq'][0]*lbr),int(HH_pd['freq'][0])
-        # HH_pdc=HH_pd[HH_pd['freq']>lb]
-        # print(f'lpdc: {len(HH_pdc)} lpd: {len(HH_pd)} ub:{ub} lb:{lb} HHratio:{lbr}')
-        matUMAPED=self.umapT.transform(df[ftr])   
-        df['u1']=matUMAPED[:,0]
-        df['u2']=matUMAPED[:,1]
+        matUMAPED=self.umapT.transform(df[ftr])
+        for i in range(self.outDim):   
+            df[f'u{i+1}'] = pd.Series(matUMAPED[:,i], index=df.index)
         return df
 
-    def get_cluster(self, u1 = 'u1', u2 = 'u2'):
-        umap_result = self.dfHH.loc[:, [u1, u2]].values
-        kmap = KMeans(n_clusters=self.nCluster, n_init=30, algorithm='elkan',random_state=926)
-        kmap.fit(umap_result, sample_weight = None)
-        self.dfHH[f'k{self.nCluster}'] = kmap.labels_ + 1 
-        self.kmap = kmap
+    def get_cluster(self):
+        self.kmap = KMeans(n_clusters=self.nCluster, n_init=30, algorithm='elkan',random_state=926)
+        self.kmap.fit(self.matUMAP, sample_weight = None)
+        self.dfHH[f'k{self.nCluster}'] = pd.Series(self.kmap.labels_+1, index=self.dfHH.index)
 
-    
+    def get_clustered(self, df, ftr):
+        matKMAPED=self.kmap.transform(df[ftr])
+        df[f'k{self.nCluster}'] = pd.Series(matKMAPED, index=self.dfHH.index)
+        return df
+
+
 
 
 # def get_freq_aug(df):

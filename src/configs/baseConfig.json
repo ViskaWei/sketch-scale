@@ -1,6 +1,5 @@
 {
     "seed": 112,
-    "name": "test",
-    "out": "./out",
-    "dim": 8
+    "test": true,
+    "sci": false
 }

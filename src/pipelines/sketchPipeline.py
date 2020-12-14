@@ -7,7 +7,7 @@ import json
 import random
 import numpy as np
 from src.pipelines.basePipeline import BasePipeline
-from src.dataset.save import save_dataset, load_dataset
+from src.dataset.save import load_dataset
 from src.sketch.SnS import SnS
 from src.clustering.embed import Embed
 
@@ -106,18 +106,18 @@ class SketchPipeline(BasePipeline):
         sns=SnS(self.dfNorm, self.base, sketchMode = self.sketchMode,\
                  topk = self.topk, csParams=self.csParams, dtype=self.dtype)
         sns.run()
-        if self.save['stream']: self.save_data(sns.stream, "stream", "h5") 
+        if self.save['stream']: self.save_dataset(sns.stream, "stream", "h5") 
         print(sns.dfHH)
         print(self.save)
-        if self.save['HH']: self.save_data(sns.dfHH, "dfHH", "csv") 
+        if self.save['HH']: self.save_dataset(sns.dfHH, "dfHH", "csv") 
         return sns.dfHH
         
     def run_step_cluster(self, dfHH):
-        embed = Embed(dfHH, self.dim, self.nCluster, ratio = self.ratio)
+        embed = Embed(dfHH, ratio = self.ratio, dim = self.dim, nCluster = self.nCluster)
         embed.run()
-        self.save_data(embed.dfHH, "dfEmbed", "csv") 
-        if self.save['UMAP']: self.save_data(embed.umapT, "umapT", "joblib")
-        if self.save['KMAP']: self.save_data(embed.kmap, "kmap", "joblib") 
+        self.save_dataset(embed.dfHH, "dfEmbed", "csv") 
+        if self.save['UMAP']: self.save_dataset(embed.umapT, "umapT", "joblib")
+        if self.save['KMAP']: self.save_dataset(embed.kmap, "kmap", "joblib") 
         return embed.dfHH
     # def run_step_encode(self, dfNorm):
     #     stream=get_encode_stream(dfNorm, self.base, self.dtype)

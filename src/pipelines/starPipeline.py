@@ -5,12 +5,13 @@ import numpy as np
 import pickle
 
 from src.pipelines.basePipeline import BasePipeline
-from src.dataset.cancerDataset import CancerDataset
-from src.prepro.cancerPrepro import CancerPrepro
+from src.dataset.starDataset import StarDataset
+from src.prepro.starPrepro import StarPrepro
+
 from src.dataset.save import save_dataset, load_dataset
 
 
-class CancerPipeline(BasePipeline):
+class StarPipeline(BasePipeline):
     def __init__(self, logging=True):
         super().__init__()
         self.nImg=None
@@ -71,13 +72,13 @@ class CancerPipeline(BasePipeline):
 
     def run(self, saveNorm=False):
         matPCA = self.run_step_load()
-        dfNorm=self.run_step_prepro(matPCA)
+        dfNorm=self.run_step_norm(matPCA)
         if saveNorm: self.run_step_save(dfNorm)
         return dfNorm
 
 
     def run_step_load(self):
-        ds=CancerDataset(self.args['in'] ,nImg=self.nImg, isTest=self.args['test'], smooth=self.smooth)
+        ds=StarDataset(self.args['in'] ,nImg=self.nImg, isTest=self.args['test'], smooth=self.smooth)
         self.nImg=ds.nImg
         if self.save['maskId'] is not None:
             if self.save['maskId'] >self.nImg:
@@ -85,42 +86,23 @@ class CancerPipeline(BasePipeline):
                 logging.info('maskId out of range, saving 0th img')
         matPCA = ds.get_pc(self.dim)
         del ds
-        if self.save['mat']: self.save_dataset(matPCA, 'matPCA', "txt")        
+        if self.save['mat']: save_dataset(self.out, matPCA, 'matPCA',fileFormat="txt")        
         return matPCA  
 
-    def run_step_prepro(self, matPCA):
-        prepro=CancerPrepro(matPCA, cutoff=self.cutoff)
-        assert prepro.dim == self.dim
-        dfNorm, mask = prepro.get_cancer_norm()
+    def run_step_norm(self, matPCA):
+        norm=Norm(matPCA, cutoff=self.cutoff)
+        assert norm.dim == self.dim
+        dfNorm, mask = norm.get_Star_norm()
         if self.cutoff is None:
-            self.save_dataset(prepro.cutoff, "cutoff" , "pickle")
-        logging.info(" cutoff @:  {}".format(prepro.cutoff))
-        del prepro
+            save_dataset(self.out, norm.cutoff, "cutoff" ,fileFormat="pickle")
+        logging.info(" cutoff @:  {}".format(norm.cutoff))
+        del norm
         if self.save['mask']: self.save_mask(mask,'mask')
         return dfNorm
 
     def run_step_save(self, dfNorm):
-        self.save_dataset( dfNorm, "dfNorm", "csv")
+        save_dataset(self.out, dfNorm, "dfNorm", name=self.name, fileFormat="csv")
     
-    def save_mask(self,mask, filename):
-        mask2d=mask.reshape((self.nImg,1004*1344))
-        if self.save['maskId'] is None:
-            self.save_dataset(mask, f"{filename}_all", "txt")
-        else:
-            maskId=self.save['maskId']
-            mask0= mask2d[maskId]
-            idxi=int(mask2d[:maskId].sum())
-            idxj=int(mask2d[:(maskId+1)].sum())
-            assert idxj-idxi == mask0.sum()
-            self.idx=[idxi,idxj,maskId]
-            logging.info('idxi, idxj, maskId: {}'.format(self.idx))
-            logging.info('  saving mask {}{}'.format(mask0.shape, mask.sum()))
-            self.save_dataset(mask0, f"{filename}Id{maskId}", "txt")
-
-    
-
-
-
     
    
 

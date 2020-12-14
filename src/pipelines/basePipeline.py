@@ -163,5 +163,5 @@ class BasePipeline():
         else: 
             return logging.INFO
 
-    def save_data(self, data, dataName, fileFormat=None, suffix=None):
+    def save_dataset(self, data, dataName, fileFormat=None, suffix=None):
         save_dataset(self.out,data,dataName, name=self.name, fileFormat=fileFormat, suffix=suffix)
