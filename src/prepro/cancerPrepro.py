@@ -35,7 +35,7 @@ class CancerPrepro():
         mask = intensity > self.cutoff
         try: 
             m=np.sum(mask)
-            assert  m > 1e3
+            assert  m > 1e2
             logging.info('stream length m = {}'.format(m))
         except:
             raise 'stream size too small, lower cutoff or add samples'

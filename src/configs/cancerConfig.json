@@ -1,6 +1,9 @@
 {
+    "config": [
+        "./src/configs/sketchConfig.json"
+    ],
     "in": "/scratch/ceph/szalay/swei20/cancerHH/AceCanZ/data/bki",
-    "out": "../../out/cancer/",
+    "out": "./out/cancer/",
     "name": "test",
     "nImg": 1,   
     "dim": 8,
@@ -8,5 +11,6 @@
     "saveMask": false,
     "maskId": 0
 }
+
 
 

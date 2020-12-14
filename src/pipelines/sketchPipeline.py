@@ -22,9 +22,12 @@ class SketchPipeline(BasePipeline):
         self.dtype = "uint64"
         self.topk = 20000
         self.csParams = None
-        self.save = {'stream':False, 'HH':False, "UMAP": False, "KMAP": False}
-        self.nCluster = None
+        self.isSave = {'stream':False, 'HH':False, "UMAP": False, "KMAP": False}
         self.ratio = None
+        self.nCluster = None
+        self.dfHH = None
+        self.dfEmbed = None
+
       
         
     def add_args(self, parser):
@@ -64,8 +67,9 @@ class SketchPipeline(BasePipeline):
 
             
     def apply_encode_args(self):
-        if self.dfNorm is None and 'dfNorm' in self.args and self.args['dfNorm'] is not None:
-            self.dfNorm = load_dataset(None, None, fileFormat="csv", dirPath = self.args['dfNorm'])
+        if self.dfNorm is None:
+            if 'dfNorm' in self.args and self.args['dfNorm'] is not None:
+                self.dfNorm = load_dataset(None, None, fileFormat="csv", dirPath = self.args['dfNorm'])
         if 'base' in self.args and self.args['base'] is not None:
             self.base=self.args['base']
         else:
@@ -80,6 +84,9 @@ class SketchPipeline(BasePipeline):
             self.sketchMode=self.args['sketchMode']
         if 'topk' in self.args and self.args['topk'] is not None:
             self.topk=self.args['topk']
+            if self.isTest: 
+                self.topk = 1000
+                logging.info(f"Taking {self.topk} only for testing")
 
     def apply_cluster_args(self):
         if 'nCluster' in self.args and self.args['nCluster'] is not None:
@@ -87,38 +94,39 @@ class SketchPipeline(BasePipeline):
         
     def apply_save_args(self):
         if 'saveStream' in self.args and self.args['saveStream'] is not None:
-            self.save['stream']=self.args['saveStream']
+            self.isSave['stream']=self.args['saveStream']
         if 'saveHH' in self.args and self.args['saveHH'] is not None:
-            self.save['HH']=self.args['saveHH']
+            self.isSave['HH']=self.args['saveHH']
         if 'saveUMAP' in self.args and self.args['saveUMAP'] is not None:
-            self.save['UMAP']=self.args['saveUMAP']
+            self.isSave['UMAP']=self.args['saveUMAP']
         if 'saveKMAP' in self.args and self.args['saveKMAP'] is not None:
-            self.save['KMAP']=self.args['saveKMAP']
-        logging.info('saving {}'.format(self.save.items()))
+            self.isSave['KMAP']=self.args['saveKMAP']
+        logging.info('saving {}'.format(self.isSave.items()))
 
 
-    def run(self):
-        dfHH = self.run_step_SnS()
-        dfEmbed = self.run_step_cluster(dfHH) 
-        return dfEmbed
+    def sketch(self):
+        self.dfHH = self.run_step_SnS()
+        self.dfEmbed = self.run_step_cluster(self.dfHH) 
 
     def run_step_SnS(self):
         sns=SnS(self.dfNorm, self.base, sketchMode = self.sketchMode,\
                  topk = self.topk, csParams=self.csParams, dtype=self.dtype)
         sns.run()
-        if self.save['stream']: self.save_dataset(sns.stream, "stream", "h5") 
+        if self.isSave['stream']: self.save_dataset(sns.stream, "stream", "h5") 
         print(sns.dfHH)
-        print(self.save)
-        if self.save['HH']: self.save_dataset(sns.dfHH, "dfHH", "csv") 
+        print(self.isSave)
+        if self.isSave['HH']: self.save_dataset(sns.dfHH, "dfHH", "csv") 
         return sns.dfHH
         
     def run_step_cluster(self, dfHH):
-        embed = Embed(dfHH, ratio = self.ratio, dim = self.dim, nCluster = self.nCluster)
+        embed = Embed(dfHH, ratio = self.ratio, inDim = self.dim, nCluster = self.nCluster)
         embed.run()
         self.save_dataset(embed.dfHH, "dfEmbed", "csv") 
-        if self.save['UMAP']: self.save_dataset(embed.umapT, "umapT", "joblib")
-        if self.save['KMAP']: self.save_dataset(embed.kmap, "kmap", "joblib") 
+        if self.isSave['UMAP']: self.save_dataset(embed.umapT, "umapT", "joblib")
+        if self.isSave['KMAP']: self.save_dataset(embed.kmap, "kmap", "joblib") 
         return embed.dfHH
+
+
     # def run_step_encode(self, dfNorm):
     #     stream=get_encode_stream(dfNorm, self.base, self.dtype)
     #     if self.save['stream']: 

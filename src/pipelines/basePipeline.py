@@ -19,6 +19,7 @@ class BasePipeline():
         self.name='test'
         self.dim=None
         self.debug=False
+        self.isTest = True
                 
     def prepare(self):
         self.create_parser()
@@ -29,6 +30,7 @@ class BasePipeline():
     def add_args(self,parser):
         parser.add_argument('--config', type=str, help='Load config from json file.')
         parser.add_argument('--seed', type=int, help='Set random\n' )
+        parser.add_argument('--test', type=bool, help='Test or original size\n')
         parser.add_argument('--name', type=str, help='save model name\n')
         parser.add_argument('--out', type=str, help='output dir\n')
         parser.add_argument('--dim', type=int, default=None,  help='Latent Representation dimension\n')
@@ -117,6 +119,9 @@ class BasePipeline():
         if 'name' in self.args and self.args['name'] is not None:
             self.name =self.args['name']
 
+        if 'test' in self.args and self.args['test'] is not None:
+            self.isTest =self.args['test']
+
     def apply_input_args(self):
         if 'dim' in self.args and self.args['dim'] is not None:
             self.dim = self.args["dim"]
@@ -165,3 +170,15 @@ class BasePipeline():
 
     def save_dataset(self, data, dataName, fileFormat=None, suffix=None):
         save_dataset(self.out,data,dataName, name=self.name, fileFormat=fileFormat, suffix=suffix)
+
+
+    def run(self):
+        pass
+
+    def eval(self):
+        pass
+
+    def execute(self):
+        self.prepare()
+        self.run()
+        self.eval()
