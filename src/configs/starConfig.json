@@ -1,12 +1,8 @@
 {
-    "in": "/scratch/ceph/szalay/swei20/cancerHH/AceCanZ/data/bki",
-    "out": "../../out/cancer/",
+    "in": "/scratch/ceph/szalay/swei20/cancerHH/AceCanZ/data/sdss_stars/",
+    "out": "../../out/star/",
     "name": "test",
-    "nImg": 1,   
-    "dim": 8,
-    "saveMat": false,
-    "saveMask": false,
-    "maskId": 0
+    "dim": 10
 }
 
 

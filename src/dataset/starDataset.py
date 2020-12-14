@@ -7,78 +7,76 @@ from src.prepro.normFn import get_min_max_norm
 
 
 
+
 class StarDataset():
-    def __init__(self, fileDir, photoName, specName, ftr, isTest=False):
-        self.fileDir=None
+    def __init__(self, rootDir, isTest=True, ftr=None, starDir=None, photoName=None, specName=None):
+        self.rootDir=rootDir
+        self.starDir = starDir or "/DR13color/"
+        self.photoName = photoName or "photo30M_ext"
+        self.specName = specName or "spec530k"
+        self.ftr = ftr or  ['ug', 'ur', 'ui', 'uz', 'gz', 'gi', 'gr', 'rz', 'ri', 'iz']
         self.isTest = isTest
         self.photoPath = None
         self.specPath = None
-        self.ftr = ['ug', 'ur', 'ui', 'uz', 'gz', 'gi', 'gr', 'rz', 'ri', 'iz']
+        self.lblPath = None
+        self.vmin = None
+        self.vmax = None
+        self.dim = len(self.ftr)
+        self.dfPhotoNorm = None
+        self.dfSpecNorm = None
+        self.dfLabel = None
 
-        self.dim = len(ftr)
     # ===========================  LOADING  ================================
-        self.get_file_path(photoName, specName)
 
-
-
-
+        self.get_file_path()
 
     # ===========================  FUNCTIONS  ================================
 
-    def get_file_path(self, photoName, specName):
-        self.photoPath = self.fileDir + photoName
-        self.specPath = self.fileDir + specName
+    def run(self):
+        self.get_photo_norm()
+        self.get_spec_norm()
+
+
+    def get_file_path(self):
         if self.isTest:
-            self.photoPath += '_test'
-            self.specPath += 'test'
+            self.photoName += '_test'
+            self.specName += '_test'
+        self.photoPath = self.rootDir + self.starDir + self.photoName + ".csv"
+        self.specPath = self.rootDir + self.starDir + self.specName + ".csv"
+        self.lblPath = self.rootDir + "label.csv"
+
 
     def get_photo_norm(self):
         dfPhoto=pd.read_csv(self.photoPath)
         dfPhoto = dfPhoto[self.ftr]
-
-
-    def prepro_photo_spec(self):
-        dffull=pd.read_csv(self.photoPath)
-        dffull=dffull[dffull['class']!='GALAXY']
-        print(dffull.shape)
-        dfspec_norm,vmin,vrng,vmean,vstd,df_lbl=get_std_norm_pd(dffull[ftr],dffull[['class','subclass','lu']])
-        # print(vmin,vrng,vmean,vstd)
-        # print(dfspec_norm.all().isnull().sum())
-        df_lbl=get_stellar_pd(df_lbl)  
-        # dfspec_norm.to_csv(f'{wpath}/spec_norm.csv',index=False)
-        print(dfspec_norm.shape)
-        # df_lbl.to_csv(f'{wpath}/spec_lbl.csv', index=False)   
-        dfphoto=pd.read_csv(PHOTO_DATA)
-        dfphoto_norm=(dfphoto[ftr]-vmean)/vstd
-        dfphoto_norm=(dfphoto_norm-vmin)/vrng
-        dfphoto_norm=dfphoto_norm[(dfphoto_norm[dfphoto_norm.columns] >= 0).all(axis=1) & (dfphoto_norm[dfphoto_norm.columns] <= 1).all(axis=1)]
-        assert (dfphoto_norm.min().min()>=0) & (dfphoto_norm.max().max()<=1)
-        print(dfphoto_norm.shape)
-            # df.to_csv(f'{wpath}/photo_norm_{base}.csv', index=False)
-        return dfphoto_norm, dfspec_norm,df_lbl
-    
-    
-    def prepro_std_specs(SPEC_DATA, ftr=None, sig=3.0, w=True,wpath=None):
-        df_full=pd.read_csv(SPEC_DATA)
-        df_snorm,vmean,vstd,df_label=get_prepro_std_pds(df_full,ftr=ftr, lbl_str=['class','subclass'],sig=sig)
-        print(df_snorm.head(),vmean,vstd)
-        print('label',df_label.head() )
-        if w:
-            print(f'writing to {wpath}')
-            np.savetxt(f'{wpath}/vmean.txt',vmean)
-            np.savetxt(f'{wpath}/vstd.txt',vstd)
-            df_snorm.to_csv(f'{wpath}/spec_norm.csv',index=False)
-            df_label.to_csv(f'{wpath}/spec_lbl.csv', index=False)
-        return df_snorm,vmean,vstd,df_label
-
-
-
-    def get_file_path(self, fileDir):
-        filePath = [os.path.join(fileDir, f) for f in os.listdir(fileDir) if f.endswith('.fw')]
-        if (self.nImg is None) or (self.nImg== -1):
-            self.filePath=filePath
-            self.nImg=len(filePath)
-        else:
-            self.filePath = filePath[self.ini:self.ini + self.nImg]
-        logging.info("  Loading # {} image(s) ".format(len(self.filePath)))
+        self.dfPhotoNorm, self.vmin, self.vmax = get_min_max_norm(dfPhoto, out=True)
+                
+    def get_spec_norm(self, labelName = ['class','subclass']):
+        df = pd.read_csv(self.specPath)
+        df = df[(df['class']=='STAR' )|(df['class']=='QSO')]    
+        self.dfLabel = self.get_subclass_lbl(df[labelName])
+        self.dfSpecNorm = (df[self.ftr] - self.vmin)/(self.vmax - self.vmin)
         
+
+    def get_subclass_lbl(self, dfLabel):
+        dfLabelDict=pd.read_csv(self.lblPath)
+        dictLu={}
+        dictLbl={}
+        dictMain={}
+        for ii, subcls in enumerate(dfLabelDict['subclass'].values):
+            dictLbl[subcls]=dfLabelDict['T'][ii]
+            dictLu[subcls]=dfLabelDict['L'][ii]
+            dictMain[subcls]=dfLabelDict['class5'][ii]   
+        dfLabel['subclass'][dfLabel['subclass'].isnull()]='qN'                
+        dfLabel['subclass'][dfLabel['subclass']=='']='qN'
+        dfLabel['lbl']=dfLabel['subclass'].apply(lambda x: dictLbl[x])
+        dfLabel['lu']=dfLabel['subclass'].apply(lambda x: dictLu[x].strip())
+        dfLabel['class5']=dfLabel['subclass'].apply(lambda x: dictMain[x])
+        print(dfLabel['class5'].unique())
+        print(dfLabel['lu'].unique())
+        dfLabel['t']=dfLabel['lbl'].apply(lambda x: str(x)[0])
+        dfLabel['t8']=dfLabel['t']
+        dfLabel['t8'][(dfLabel['t']=='L')|(dfLabel['t']=='T')]='M'
+        dfLabel['t8'][(dfLabel['t']=='O')|(dfLabel['t']=='B')]='A'
+        return dfLabel
+

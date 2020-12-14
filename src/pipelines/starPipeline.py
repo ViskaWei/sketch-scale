@@ -6,7 +6,7 @@ import pickle
 
 from src.pipelines.basePipeline import BasePipeline
 from src.dataset.starDataset import StarDataset
-from src.prepro.starPrepro import StarPrepro
+# from src.prepro.starPrepro import StarPrepro
 
 from src.dataset.save import save_dataset, load_dataset
 
