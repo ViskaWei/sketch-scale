@@ -1,6 +1,9 @@
 {
+    "config": [
+        "./src/configs/sketchConfig.json"
+    ],
     "in": "/scratch/ceph/szalay/swei20/cancerHH/AceCanZ/data/sdss_stars/",
-    "out": "../../out/star/",
+    "out": "./out/star/",
     "name": "test",
     "dim": 10
 }

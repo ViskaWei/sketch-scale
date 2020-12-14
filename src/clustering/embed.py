@@ -6,7 +6,7 @@ from sklearn.cluster import KMeans
 pd.options.mode.chained_assignment = None  
 
 class Embed(object):
-    def __init__(self, dfHH, outDim = 2 , ratio = None, inDim=None, nCluster=None):
+    def __init__(self, dfHH, outDim = 2 , topk = None, ratio = None, inDim=None, nCluster=None):
         if ratio is not None:  dfHH = dfHH[dfHH['ra']<ratio] 
         self.ratio = ratio 
         self.dfHH = dfHH
@@ -33,8 +33,6 @@ class Embed(object):
         self.matUMAP = umapT.fit_transform(self.dfHH[self.ftr].values)
         for i in range(self.outDim):
             self.dfHH[f'u{i+1}'] = pd.Series(self.matUMAP[:,i], index=self.dfHH.index)
-
-            # self.dfHH[f'u{i+1}'] = pd.Series(self.matUMAP[:,i], index=self.dfHH.index)
         self.umapT = umapT
 
     def get_mapped(self, df, ftr):

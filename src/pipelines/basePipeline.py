@@ -7,6 +7,7 @@ import numpy as np
 from src.dataset.save import save_dataset
 
 
+
 class BasePipeline():
     '''
     Setting up pipline for taking command line argment specifying output, name, dim, seed, config

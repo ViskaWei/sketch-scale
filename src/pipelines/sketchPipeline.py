@@ -78,6 +78,7 @@ class SketchPipeline(BasePipeline):
             self.dtype=self.args['dtype']
         if 'ratio' in self.args and self.args['ratio'] is not None:
             self.ratio=self.args['ratio']
+        if self.isTest: self.ratio = 0.5
 
     def apply_sketch_args(self):
         if 'sketchMode' in self.args and self.args['sketchMode'] is not None:
