@@ -25,10 +25,9 @@ class SketchPipeline(BasePipeline):
         self.isSave = {'stream':False, 'HH':False, "UMAP": False, "KMAP": False}
         self.ratio = None
         self.nCluster = None
-        self.dfHH = None
-        self.dfEmbed = None
+        self.embed = None
+        self.emDim = 2
 
-      
         
     def add_args(self, parser):
         super().add_args(parser)
@@ -36,22 +35,24 @@ class SketchPipeline(BasePipeline):
         parser.add_argument('--base', type=int, default=None, help='Base\n')
         parser.add_argument('--dtype', type=str, default=None, help='dtype\n')
         parser.add_argument('--dfNorm', type=str, default=None, help='dtype\n')
-        parser.add_argument('--saveStream', type=bool, help='Saving stream\n')
         
         ############################## SKETCH #######################################
         parser.add_argument('--sketchMode', type=str, help='exact or cs\n')
         parser.add_argument('--topk', type=int, help='keep top k Heavy Hitters\n')
         parser.add_argument('--csParams', type=str, nargs=4, help='count sketch table parameters\n')
-
-
-        parser.add_argument('--ratio', type=int, default=None, help='ratio of HHs\n')
-        parser.add_argument('--saveHH', type=bool, help='Saving HH\n')
         
         ############################## EMBED #######################################
+        parser.add_argument('--ratio', type=int, default=None, help='ratio of HHs\n')
+        parser.add_argument('--emDim', type=int, default=None, help='dimension of final lower embedding\n')
+        
         parser.add_argument('--nCluster', type=int, default=None, help='KMEAN cluster numbers\n')
+        
+        ############################## SAVING #######################################
+        
+        parser.add_argument('--saveStream', type=bool, help='Saving stream\n')        
+        parser.add_argument('--saveHH', type=bool, help='Saving HH\n')        
         parser.add_argument('--saveUMAP', type=bool, help='Saving UMAPT\n')
         parser.add_argument('--saveKMAP', type=bool, help='Saving KMAP\n')
-
 
 
     def prepare(self):
@@ -76,9 +77,7 @@ class SketchPipeline(BasePipeline):
             raise "--base base not specified"
         if 'dtype' in self.args and self.args['dtype'] is not None:
             self.dtype=self.args['dtype']
-        if 'ratio' in self.args and self.args['ratio'] is not None:
-            self.ratio=self.args['ratio']
-        if self.isTest: self.ratio = 0.5
+
 
     def apply_sketch_args(self):
         if 'sketchMode' in self.args and self.args['sketchMode'] is not None:
@@ -90,8 +89,13 @@ class SketchPipeline(BasePipeline):
                 logging.info(f"Taking {self.topk} only for testing")
 
     def apply_cluster_args(self):
+        if 'ratio' in self.args and self.args['ratio'] is not None:
+            self.ratio=self.args['ratio']
+        if self.isTest: self.ratio = 0.5
         if 'nCluster' in self.args and self.args['nCluster'] is not None:
             self.nCluster=self.args['nCluster']
+        if 'emDim' in self.args and self.args['emDim'] is not None:
+            self.emDim=self.args['emDim']
         
     def apply_save_args(self):
         if 'saveStream' in self.args and self.args['saveStream'] is not None:
@@ -105,9 +109,12 @@ class SketchPipeline(BasePipeline):
         logging.info('saving {}'.format(self.isSave.items()))
 
 
-    def sketch(self):
-        self.dfHH = self.run_step_SnS()
-        self.dfEmbed = self.run_step_cluster(self.dfHH) 
+    def run_step_embed(self):
+        dfHH = self.run_step_SnS()
+        self.run_step_umap(dfHH) 
+
+    def cluster(self):
+        self.run_step_cluster()
 
     def run_step_SnS(self):
         sns=SnS(self.dfNorm, self.base, sketchMode = self.sketchMode,\
@@ -119,14 +126,16 @@ class SketchPipeline(BasePipeline):
         if self.isSave['HH']: self.save_dataset(sns.dfHH, "dfHH", "csv") 
         return sns.dfHH
         
-    def run_step_cluster(self, dfHH):
-        embed = Embed(dfHH, ratio = self.ratio, inDim = self.dim, nCluster = self.nCluster)
-        embed.run()
-        self.save_dataset(embed.dfHH, "dfEmbed", "csv") 
-        if self.isSave['UMAP']: self.save_dataset(embed.umapT, "umapT", "joblib")
-        if self.isSave['KMAP']: self.save_dataset(embed.kmap, "kmap", "joblib") 
-        return embed.dfHH
+    def run_step_umap(self, dfHH):
+        self.embed = Embed(dfHH, inDim = self.dim, emDim = self.emDim, ratio = self.ratio,\
+                             nCluster = self.nCluster)
+        self.embed.get_umapT()
+        self.save_dataset(self.embed.dfHH, "dfEmbed", "csv") 
+        if self.isSave['UMAP']: self.save_dataset(self.embed.umapT, "umapT", "joblib")
 
+    def run_step_cluster(self):
+        self.embed.get_cluster()
+        if self.isSave['KMAP']: self.save_dataset(self.embed.kmap, "kmap", "joblib") 
 
     # def run_step_encode(self, dfNorm):
     #     stream=get_encode_stream(dfNorm, self.base, self.dtype)

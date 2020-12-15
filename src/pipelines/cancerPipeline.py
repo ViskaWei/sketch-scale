@@ -1,9 +1,4 @@
 import logging
-import os
-from src.pipelines.sketchPipeline import SketchPipeline
-import time
-import numpy as np
-import pickle
 
 from src.pipelines.sketchPipeline import SketchPipeline
 from src.dataset.cancerDataset import CancerDataset
@@ -40,9 +35,6 @@ class CancerPipeline(SketchPipeline):
         self.apply_cancer_save_args()
 
     def apply_dataset_args(self):
-        if 'in' not in self.args or self.args['in'] is None:
-            raise "--in input directory is not specified"
-
         if 'nImg' in self.args and self.args['nImg'] is not None:
             self.nImg=self.args['nImg']
         
@@ -74,11 +66,12 @@ class CancerPipeline(SketchPipeline):
         super().run()
         matPCA = self.run_step_load()
         self.run_step_prepro(matPCA)
-        self.sketch()
+        self.run_step_embed()
+        self.cluster()
 
 
     def run_step_load(self):
-        ds=CancerDataset(self.args['in'] ,nImg=self.nImg, isTest=self.isTest, smooth=self.smooth)
+        ds=CancerDataset(self.inDir ,nImg=self.nImg, isTest=self.isTest, smooth=self.smooth)
         self.nImg=ds.nImg
         if self.addSave['maskId'] is not None:
             if self.addSave['maskId'] >self.nImg:

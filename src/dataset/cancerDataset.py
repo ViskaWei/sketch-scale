@@ -5,7 +5,7 @@ from scipy.ndimage import gaussian_filter
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
 class CancerDataset():
-    def __init__(self, fileDir, nImg=None, isTest=False, smooth= None, size = [1004,1344,35]):
+    def __init__(self, inDir, nImg=None, isTest=False, smooth= None, size = [1004,1344,35]):
         self.filePath=None
         self.nImg=nImg
         self.isTest = isTest
@@ -17,7 +17,7 @@ class CancerDataset():
         self.cov=None
         self.eigenVecs=None
         # ===========================  Load data  ================================
-        self.get_file_path(fileDir)
+        self.get_file_path(inDir)
         self.load(parallel=True)
 
     # ===========================  FUNCTIONS  ================================

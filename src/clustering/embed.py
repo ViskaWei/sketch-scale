@@ -6,14 +6,16 @@ from sklearn.cluster import KMeans
 pd.options.mode.chained_assignment = None  
 
 class Embed(object):
-    def __init__(self, dfHH, outDim = 2 , topk = None, ratio = None, inDim=None, nCluster=None):
+    def __init__(self, dfHH, inDim=None, emDim = 2 , \
+                        topk = None, ratio = None, nCluster=None):
+        self.dfHHfull = dfHH
         if ratio is not None:  dfHH = dfHH[dfHH['ra']<ratio] 
-        self.ratio = ratio 
+        if topk is not None: dfHH = dfHH.iloc[:topk]
         self.dfHH = dfHH
+        self.emDim = emDim
         self.ftr = None
         self.nCluster = None
         self.kmap = None
-        self.outDim = outDim
         self.matUMAP = None
 
         self.init(inDim, nCluster)
@@ -24,22 +26,23 @@ class Embed(object):
         self.ftr = self.dfHH.columns[:ftrLen]
         self.nCluster = nCluster or 10
 
-    def run(self):
+    def cluster(self):
         self.get_umapT()
         self.get_cluster()
 
     def get_umapT(self):
-        umapT = umap.UMAP(n_components=self.outDim, min_dist=0.0, n_neighbors=50, random_state=926)
+        umapT = umap.UMAP(n_components=self.emDim, min_dist=0.0, n_neighbors=50, random_state=926)
         self.matUMAP = umapT.fit_transform(self.dfHH[self.ftr].values)
-        for i in range(self.outDim):
+        for i in range(self.emDim):
             self.dfHH[f'u{i+1}'] = pd.Series(self.matUMAP[:,i], index=self.dfHH.index)
         self.umapT = umapT
 
-    def get_mapped(self, df, ftr):
+    def get_mapped(self, df, ftr=None):
+        if ftr is None: ftr = slice(None)
         matUMAPED=self.umapT.transform(df[ftr])
-        for i in range(self.outDim):   
+        for i in range(self.emDim):   
             df[f'u{i+1}'] = pd.Series(matUMAPED[:,i], index=df.index)
-        return df
+        return matUMAPED
 
     def get_cluster(self):
         self.kmap = KMeans(n_clusters=self.nCluster, n_init=30, algorithm='elkan',random_state=926)

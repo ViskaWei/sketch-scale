@@ -5,7 +5,8 @@
     "in": "/scratch/ceph/szalay/swei20/cancerHH/AceCanZ/data/sdss_stars/",
     "out": "./out/star/",
     "name": "test",
-    "dim": 10
+    "dim": 10,
+    "emDim": 4
 }
 
 
