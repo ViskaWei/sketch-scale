@@ -37,6 +37,7 @@ class CancerPipeline(SketchPipeline):
     def apply_dataset_args(self):
         if 'nImg' in self.args and self.args['nImg'] is not None:
             self.nImg=self.args['nImg']
+            if self.isTest: self.nImg = 1
         
         if 'smooth' in self.args and self.args['smooth'] is not None:
             self.smooth=[self.args['smooth'],self.args['smooth'],0]
@@ -48,7 +49,8 @@ class CancerPipeline(SketchPipeline):
             except:
                 self.cutoff=None 
                 logging.info('cannot load cutoff, calculating again')
-        if self.isTest: self.cutoff = 0
+        elif self.isTest: 
+            self.cutoff = 0
     
     def apply_cancer_save_args(self):
         if 'saveMat' in self.args and self.args['saveMat'] is not None:
@@ -86,8 +88,7 @@ class CancerPipeline(SketchPipeline):
         prepro=CancerPrepro(matPCA, cutoff=self.cutoff)
         assert prepro.dim == self.dim
         self.dfNorm, mask = prepro.get_cancer_norm()
-        if self.cutoff is None:
-            self.save_dataset(prepro.cutoff, "cutoff" , "pickle")
+        if self.cutoff is None: self.save_dataset(prepro.cutoff, "cutoff" , "pickle")
         logging.info(" cutoff @:  {}".format(prepro.cutoff))
         del prepro
         if self.addSave['mask']: self.save_mask(mask,'mask')

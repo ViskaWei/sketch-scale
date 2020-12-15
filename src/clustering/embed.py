@@ -1,6 +1,7 @@
 import umap
 import numpy as np
 import pandas as pd
+import logging
 from sklearn.cluster import KMeans
 
 pd.options.mode.chained_assignment = None  
@@ -9,28 +10,39 @@ class Embed(object):
     def __init__(self, dfHH, inDim=None, emDim = 2 , \
                         topk = None, ratio = None, nCluster=None):
         self.dfHHfull = dfHH
-        if ratio is not None:  dfHH = dfHH[dfHH['ra']<ratio] 
-        if topk is not None: dfHH = dfHH.iloc[:topk]
-        self.dfHH = dfHH
+        self.inDim = inDim
         self.emDim = emDim
+        self.dfHH = None
+        self.nHH = None
         self.ftr = None
-        self.nCluster = None
+        self.nCluster = nCluster or 10
         self.kmap = None
         self.matUMAP = None
 
-        self.init(inDim, nCluster)
+        self.init_HH(dfHH, topk, ratio)
+        self.init_ftr(inDim)
 
-    def init(self, inDim, nCluster):
-        ftrLen = np.where(self.dfHH.columns == "HH")[0][0]
-        if inDim is not None:  assert inDim == ftrLen
-        self.ftr = self.dfHH.columns[:ftrLen]
-        self.nCluster = nCluster or 10
+    def init_ftr(self, inDim):
+        inDim = np.where(self.dfHH.columns == "HH")[0][0]
+        if self.inDim is not None:  
+            assert self.inDim == inDim
+        else:
+            self.inDim = inDim
+        self.ftr = self.dfHH.columns[:inDim]
+
+    def init_HH(self, dfHH, topk, ratio):
+        ratioIdx =20000 if ratio is None else np.argmin(abs(dfHH['ra']-ratio))
+        if topk is None: topk = 20000
+        self.nHH = min(ratioIdx, topk)
+        self.dfHH = dfHH.iloc[:self.nHH]
+
 
     def cluster(self):
         self.get_umapT()
         self.get_cluster()
 
     def get_umapT(self):
+        logging.info(f"UMAP Embedding of {self.inDim}d {self.nHH} HH to {self.emDim}d ....")
         umapT = umap.UMAP(n_components=self.emDim, min_dist=0.0, n_neighbors=50, random_state=926)
         self.matUMAP = umapT.fit_transform(self.dfHH[self.ftr].values)
         for i in range(self.emDim):
@@ -45,7 +57,8 @@ class Embed(object):
         return matUMAPED
 
     def get_cluster(self):
-        self.kmap = KMeans(n_clusters=self.nCluster, n_init=30, algorithm='elkan',random_state=926)
+        logging.info(f"KMEAN(elkan) clustering of the embedding to {self.nCluster}-clusters ....")
+        self.kmap = KMeans(n_clusters=self.nCluster, n_init=30, algorithm='elkan',random_state=1178)
         self.kmap.fit(self.matUMAP, sample_weight = None)
         self.dfHH[f'k{self.nCluster}'] = pd.Series(self.kmap.labels_+1, index=self.dfHH.index)
 

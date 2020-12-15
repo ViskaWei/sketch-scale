@@ -20,7 +20,7 @@ class SketchPipeline(BasePipeline):
         self.base=None
         self.sketchMode = None
         self.dtype = "uint64"
-        self.topk = 20000
+        self.topk = None
         self.csParams = None
         self.isSave = {'stream':False, 'HH':False, "UMAP": False, "KMAP": False}
         self.ratio = None
@@ -64,7 +64,8 @@ class SketchPipeline(BasePipeline):
         self.apply_encode_args()
         self.apply_sketch_args()
         self.apply_cluster_args()
-        self.apply_save_args()
+        if not self.isTest:
+            self.apply_save_args()
 
             
     def apply_encode_args(self):
@@ -121,8 +122,9 @@ class SketchPipeline(BasePipeline):
                  topk = self.topk, csParams=self.csParams, dtype=self.dtype)
         sns.run()
         if self.isSave['stream']: self.save_dataset(sns.stream, "stream", "h5") 
-        print(sns.dfHH)
-        print(self.isSave)
+        logging.info(sns.dfHH.head())
+        logging.info(sns.dfHH.tail())
+        logging.info(f'Saving: {self.isSave}')
         if self.isSave['HH']: self.save_dataset(sns.dfHH, "dfHH", "csv") 
         return sns.dfHH
         

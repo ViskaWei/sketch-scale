@@ -1,6 +1,6 @@
 {
     "config": [
-        "./src/configs/sketchConfig.json"
+        "./src/configs/sketchConfig_fix.json"
     ],
     "in": "/scratch/ceph/szalay/swei20/cancerHH/AceCanZ/data/sdss_stars/",
     "out": "./out/star/",

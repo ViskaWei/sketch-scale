@@ -5,7 +5,7 @@
     "in": "/scratch/ceph/szalay/swei20/cancerHH/AceCanZ/data/bki",
     "out": "./out/cancer/",
     "name": "test",
-    "nImg": 1,   
+    "nImg": -1,   
     "dim": 8,
     "saveMat": false,
     "saveMask": false,

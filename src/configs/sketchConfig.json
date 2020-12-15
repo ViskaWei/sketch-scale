@@ -1,6 +1,7 @@
 {
-    "seed": 112,
-    "test": true,
+    "config": [
+        "./src/configs/baseConfig.json"
+    ],
 
     "base": 22,
     "dtype": "uint64",

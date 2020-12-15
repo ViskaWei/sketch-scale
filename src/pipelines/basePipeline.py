@@ -39,7 +39,7 @@ class BasePipeline():
     def add_args(self,parser):
         parser.add_argument('--config', type=str, help='Load config from json file.')
         parser.add_argument('--seed', type=int, help='Set random\n' )
-        parser.add_argument('--test', type=bool, help='Test or original size\n')
+        parser.add_argument('--test', type=bool, help='Testing or Real experiment\n')
         parser.add_argument('--name', type=str, help='save model name\n')
         parser.add_argument('--in', type=str, help='input dir\n')
         parser.add_argument('--out', type=str, help='output dir\n')
@@ -49,11 +49,11 @@ class BasePipeline():
         if self.args is None:
             self.args = self.parser.parse_args().__dict__
             self.get_configs(self.args)
-        print(self.args)
+        print("Args:", self.args)
     
     def get_configs(self, args):
-        args = self.update_nested_configs(args)
-        self.get_config_args(args)
+        self.args = self.update_nested_configs(args)
+        # self.get_config_args(args)
 
     def get_config_args(self, args=None):
         args = args or self.args

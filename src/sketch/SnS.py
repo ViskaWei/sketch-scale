@@ -2,6 +2,7 @@ import copy
 import time
 import torch
 import numpy as np
+import logging
 import pandas as pd
 from collections import Counter
 from src.sketch.csvec import CSVec
@@ -41,7 +42,7 @@ class SnS():
 
     def horner_encode(self, mat):
         r,c=mat.shape
-        print('samples:',r,'ftrs:',c, 'base:',self.base)
+        logging.info(f'samples: {r}|ftrs: {c}|base: {self.base}')
         streamEncode=np.zeros((r),dtype=self.dtype)
         for ii, key in enumerate(mat.keys()):
             val=(mat[key].values).astype(self.dtype)
@@ -75,11 +76,11 @@ class SnS():
         self.dfHH = dfHH
 
     def get_exact_HH(self):
-        print(f'=============exact counting HHs==============')
+        logging.info(f'=============exact counting HHs==============')
         t0=time.time()
-        dfHH=np.array(Counter(self.stream).most_common(self.topk))
+        dfHH=np.array(Counter(self.stream).most_common())
         t=time.time()-t0
-        print('exact counting time:{:.2f}'.format(t))
+        logging.info('exact counting time:{:.2f}'.format(t))
         self.HH, self.freq = dfHH[:,0], dfHH[:,1]
         
     def get_CS_HH(self):
@@ -97,7 +98,7 @@ class SnS():
         idx=np.argsort(-1*tfreqs)    
         HHfreq=np.vstack((HHs.numpy(),tfreqs))
         t=time.time()-t0
-        print('sketch counting time:{:.2f}'.format(t))
+        logging.info('sketch counting time:{:.2f}'.format(t))
         self.HH, self.freq = HHfreq[:,idx][:,:self.topk]
 
 ###############################################################################
