@@ -16,6 +16,7 @@ class BasePipeline():
     def __init__(self):
         self.parser = None
         self.args = None
+        self.inDir = None
         self.out = None
         self.name='test'
         self.dim=None
@@ -27,15 +28,6 @@ class BasePipeline():
         self.parse_args() 
         self.setup_logging()
         self.apply_args()
-        
-    def add_args(self,parser):
-        parser.add_argument('--config', type=str, help='Load config from json file.')
-        parser.add_argument('--seed', type=int, help='Set random\n' )
-        parser.add_argument('--test', type=bool, help='Test or original size\n')
-        parser.add_argument('--name', type=str, help='save model name\n')
-        parser.add_argument('--out', type=str, help='output dir\n')
-        parser.add_argument('--dim', type=int, default=None,  help='Latent Representation dimension\n')
-        
 
     def create_parser(self):
         self.parser = argparse.ArgumentParser()
@@ -43,13 +35,60 @@ class BasePipeline():
 
     def add_subparsers(self, parser):
         self.add_args(parser)
-    
+            
+    def add_args(self,parser):
+        parser.add_argument('--config', type=str, help='Load config from json file.')
+        parser.add_argument('--seed', type=int, help='Set random\n' )
+        parser.add_argument('--test', type=bool, help='Test or original size\n')
+        parser.add_argument('--name', type=str, help='save model name\n')
+        parser.add_argument('--in', type=str, help='input dir\n')
+        parser.add_argument('--out', type=str, help='output dir\n')
+        parser.add_argument('--dim', type=int, default=None,  help='Latent Representation dimension\n')
+        
     def parse_args(self):
         if self.args is None:
             self.args = self.parser.parse_args().__dict__
             self.get_configs(self.args)
         print(self.args)
     
+    def get_configs(self, args):
+        args = self.update_nested_configs(args)
+        self.get_config_args(args)
+
+    def get_config_args(self, args=None):
+        args = args or self.args
+        for key, val in args.items():
+            if self.is_arg(key,args=args):
+                self.args[key] = val
+    
+    def update_nested_configs(self,args):
+        while self.is_arg('config',args=args): 
+            args = self.load_args_jsons(args)
+        return args
+
+    def load_args_jsons(self, args):
+        configFiles = self.get_arg('config', args=args)
+        del args['config']
+        if type(configFiles) is not list:
+            configFiles = [configFiles] 
+        for configFile in configFiles:
+            configArg = self.load_args_json(configFile)
+            self.merge_args(args, configArg)
+        return args
+
+    def load_args_json(self, filename):
+        # print(filename)
+        with open(filename, 'r') as f:
+            args = json.load(f)
+        return args
+    
+    def merge_args(self, args, newArgs):
+        # only replacing if the val in args is None
+        for key, val in newArgs.items():
+            if not self.is_arg(key, args):
+                args[key] = val
+
+        
     def is_arg(self, name, args =None):
         args = args or self.args
         return name in args and args[name] is not None
@@ -62,7 +101,7 @@ class BasePipeline():
             return default
         else:
             raise f'arg {name} not specified in command line'
-    
+
     def get_loop_from_arg(self, name, fn = None):
         loopArgs = self.get_arg(name)
         if fn is None:
@@ -71,41 +110,6 @@ class BasePipeline():
             loopFn =fn(loopArgs)
         return [loopFn(ii) for ii in range(loopArgs[2])]
 
-    def get_config_args(self, args=None):
-        args = args or self.args
-        for key, val in args.items():
-            if self.is_arg(key,args=args):
-                self.args[key] = val
-    
-    def update_nested_configs(self,args):
-        args = self.load_args_jsons(args)
-        while self.is_arg('config',args=args): 
-            configArg = self.load_args_jsons(args)
-            del args['config']
-            args.update(configArg)
-        return args
-
-    def get_configs(self, args):
-        args = self.update_nested_configs(args)
-        # print('configArgs', args)
-        self.get_config_args(args)
-        # print('get_configs_final',self.args)
-    
-    def load_args_jsons(self, args):
-        configFiles = self.get_arg('config', args=args)
-        if type(configFiles) is not list:
-            configFiles = [configFiles] 
-        for configFile in configFiles:
-            configArg = self.load_args_json(configFile)
-            args.update(configArg)
-        return args
-
-    def load_args_json(self, filename):
-        # print(filename)
-        with open(filename, 'r') as f:
-            args = json.load(f)
-        return args
-    
 ##################################################APPLY ARGS###############
     def apply_args(self):
         self.apply_init_args()
@@ -124,6 +128,10 @@ class BasePipeline():
             self.isTest =self.args['test']
 
     def apply_input_args(self):
+        if 'in' in self.args and self.args['in'] is not None:
+            self.inDir = self.args['in']
+        else:
+            raise "--in input directory is not specified"
         if 'dim' in self.args and self.args['dim'] is not None:
             self.dim = self.args["dim"]
         else:
