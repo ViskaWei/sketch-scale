@@ -1,2 +1,3 @@
-# [IEEE2020] Sketch and Scale: Geo-distributed tSNE and UMAP
+# [IEEE2020] 
+Sketch and Scale: Geo-distributed tSNE and UMAP
 Viska Wei, Nikita Ivkin, Vladimir Braverman, and Alexander Szalay
